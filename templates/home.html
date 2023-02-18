@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Recommendation System</title>
+
+    <!-- Link css file -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+    <link rel="stylesheet" href="../static/css/home.css">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.2/css/all.min.css"
+        integrity="sha512-1sCRPdkRXhBV2PBLUdRb4tMg1w2YPf37qatUFeS7zlBy7jJI8Lf4VHwWfZZfpXtYSLy85pkm9GaYVYMfw5BC1A=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <!--  JQuery  -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+    <!--<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tarekraafat/autocomplete.js@10.2.7/dist/css/autoComplete.min.css">-->
+
+
+</head>
+
+<body>
+
+    <!--  Download modal-popup  -->
+    <div class="download-modal-popup" id="download-modal-popup" style="display: none;">
+        <div class="download-modal-popup-container">
+            <div class="download-modal-popup-header">
+                <p id="download-modal-movie-name"></p>
+                <span id="closeDownloadeModalPopup">X</span>
+            </div>
+            <div class="download-modal-popup-content" id="download-modal-popup-content">
+
+            </div>
+        </div>
+    </div>
+    <!--  end Download modal-popup  -->
+
+    <!--  Movie details modal popup -->
+    <div class="modal-popup" id="modal-popup" style="display: none;">
+        <div class="modal-popup-container" id="modal-popup-container">
+            <div class="modal-popup-header">
+                <p id="modal-movie-name"></p>
+                <span id="closeMovieDetailsModalPopup">X</span>
+            </div>
+        </div>
+    </div>
+    <!--  End of modal popup-->
+
+
+    <!--  cast details modal popup -->
+    <div class="modal-popup" id="cast-modal-popup">
+        <div class="modal-popup-container" id="cast-modal-popup-container">
+        </div>
+    </div>
+    <!-- end cast details modal popup  -->
+
+
+    <!-- Loader  -->
+    <div class="loader" id="loader">
+        <div class="loader-container">
+            <div class="loader-filmstrip">
+            </div>
+            <p class="loader-text">
+                loading
+            </p>
+        </div>
+    </div>
+    <!--  End of Loader -->
+
+
+    <!--  Navbar  -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <div class="navbar-content">
+                <p>
+                    <a href="/">movie recommendation system</a>
+                </p>
+                <span>Hollywood</span>
+            </div>
+        </div>
+    </nav>
+    <!--  End Navbar  -->
+
+    <!--  Search bar  -->
+    <div class="search-bar" id="search-bar">
+        <div class="serach-bar-container">
+            <div class="input-filed">
+                <input onclick="callGetMovieNames();" id="search-movie" type="text" placeholder="Search movie"
+                    autocomplete="off">
+            </div>
+            <p id="errorTag" style="display: none;"></p>
+            <div class="search-button">
+                <button id="searchMovie">Search</button>
+            </div>
+        </div>
+    </div>
+    <!-- End Search bar -->
+
+
+    <!--  Top Search  -->
+    <div class="top-search" id="top-search">
+        <div class="top-search-container">
+            <p>Random Picks <i class="fa fa-random"></i></p>
+            <div class="top-search-container-span">
+                {% for ts in topSearch %}
+                <span onclick="postMovie('{{ts}}')">
+                    <p>{{ ts }}</p>
+                </span>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    <!-- End of top search -->
+
+    <!--  If movie name is present  -->
+
+    <div class="movie-is-loaded" id="movie-is-loaded" style="display: none;">
+        <!--  If movie available  -->
+
+
+        <div class="slider">
+            <div class="slider-container" id="slider-container">
+                <button id="scrollToTopBtn" style="display: none;"><i class="fa fa-angles-up"></i></button>
+                <button id="scrollToBottomBtn"><i class="fa fa-angles-down"></i></button>
+            </div>
+        </div>
+
+        <div class="add-hr">
+        </div>
+
+        <div class="movie-card">
+            <div class="movie-card-container">
+                <div class="movie-card-header">
+                    <div class="movie-poster-card">
+                        <!-- movie poster -->
+                        <img src="" class="movie-poster-img" id="movie-poster-img">
+                        <div class="overlay" style="display: none;"></div>
+                        <div class="movie-card-i">
+                            <span id="movie-name"></span>
+                        </div>
+
+                    </div>
+                </div>
+                <div class="movie-card-know-more-btn showme">
+                    <button id="openModalPopup">Click me</button>
+                </div>
+                <div class="movie-card-footer">
+                    <span>Click me to know more</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="download-btn-container">
+            <button class="download-btn" id="download-movie-btn">Download</button>
+        </div>
+        <!-- end movie available-->
+
+        <div class="add-hr">
+        </div>
+
+        <!--  Movie Casts  -->
+        <div class="movie-cast" data-nr="0" id="movie-cast">
+
+            <div class="movie-cast-container" id="movie-cast-container">
+                <div class="movie-cast-header">
+                    <p>Top cast</p>
+                    <span>(Click on the cast to know more)</span>
+                </div>
+                <div class="movie-cast-content" id="movie-cast-content">
+                    <div class="movie-cast-cards-row" id="movie-cast-cards-row"></div>
+                </div>
+            </div>
+        </div>
+        <!--  Movie Casts  -->
+
+        <div class="add-hr">
+        </div>
+
+        <!-- Movie reviews -->
+        <div data-nr="1" class="movie-reviews">
+
+            <div class="movie-reviews-container">
+                <div class="movie-reviews-header">
+                    <p>Movie reviews</p>
+                </div>
+                <div class="movie-reviews-content">
+
+                    <div class="movie-reviews-table">
+                        <table class="movie-reviews-table-obj">
+
+                            <tbody id="review-tbody" class="loading">
+                                <tr id="col-title">
+                                    <th>REVIEWS</th>
+                                    <th>SENTIMENT</th>
+                                </tr>
+                                <tr id="removeTr" class="loading">
+                                    <td></td>
+                                    <td></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- End movie reviews -->
+
+        <div class="add-hr">
+        </div>
+
+        <!--  Recommend movie  -->
+        <div class="recommend-movie" id="recommend-movie">
+            <div class="recommend-movie-container" id="recommend-movie-container">
+                <div class="recommend-movie-header">
+                    <p>recommend movie</p>
+                    <span>(Click on the move to search)</span>
+                </div>
+                <div class="recommend-movie-content">
+                    <div class="recommend-movie-cards-row" id="recommend-movie-cards-row">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- End of recommend movie -->
+    </div>
+
+    <!--  end of movie name is present -->
+
+
+    <div class="add-hr">
+    </div>
+
+    <!--  Footer  -->
+    <div class="footer">
+        <p>Mini Project</p>
+        <span></span>
+    </div>
+
+    <script>
+
+        let movie_modal_popup_keys = ['title', 'budget', 'genres', 'overview',
+            'production_companies', 'production_countries', 'release_date',
+            'revenue', 'runtime', 'status', 'tagline', 'vote_average']
+        let cast_modal_popup_keys = ['name', 'character', 'biography',
+            'place_of_birth', 'birthday', 'deathday']
+
+        let movieData = null;
+        let castData = null;
+        let reviewData = null;
+        let firedEvents = [];
+
+        function closeCastModalPopup(title) {
+            $("#closeCastDetailsModalPopup-" + title).click(() => {
+                $("#cast-modal-popup").css('display', 'none');
+                $("#cast-modal-popup-container-" + title).css('display', 'none');
+                let modal_popup_container = document.getElementById('cast-modal-popup-container');
+            });
+        }
+
+
+
+        $(window).scroll(function () {
+            $("div.movie-cast").each(function () {
+                // //console.log(!firedEvents.includes(this), $(window).scrollTop(), $(this).offset().bottom)
+                if (!firedEvents.includes(this) && $(window).scrollTop() > $(this).offset().top) {
+                    firedEvents.push(this);
+                    $("#col-title").show()
+                    $.ajax({
+                        type: "post",
+                        url: "/getMovieReviews",
+                        data: { "movie_imdb_id": movieData['imdb_id'] },
+                        dataType: "json",
+                        success: function (data) {
+                            $("#loader").fadeOut();
+                            $("#removeTR").hide()
+                            //console.log(data)
+                            if (data['status'] == true) {
+
+                                //*  Reviews *
+                                showReviews(data['reviews-details']);
+
+                            }
+                            else {
+                                //console.log("no reviews")
+                                $("#removeTR").show()
+                            }
+                        }
+                    });
+                }
+            });
+            //console.log(firedEvents)
+            $("div.movie-reviews").each(function () {
+                if (!firedEvents.includes(this) && $(window).scrollTop() > $(this).offset().top) {
+                    firedEvents.push(this);
+                    //console.log(movieData)
+
+                    $.ajax({
+                        type: "post",
+                        url: "/getRecommendedMovies",
+                        data: { "movie-name": movieData['title'] },
+                        dataType: "json",
+                        success: function (data) {
+                            $("#loader").fadeOut()
+                            //console.log(data)
+                            if (data['status'] == true) {
+                                showRecommendMoviesCards(data['recommend-movies'])
+                            }
+                            else {
+                                movieData = {};
+                                castData = {};
+                                reviewData = {};
+
+                            }
+                        }
+                    });
+                }
+            });
+
+        });
+
+
+        function postMovie(movie_name) {
+
+            try {
+                $("#movie_list").remove();
+                $("#movie_list").empty();
+                console.log("removed ul")
+            } catch (e) { console.log(e) }
+
+            $("#errorTag").css('display', 'none');
+            $("#loader").fadeIn();
+            $("#movie_list").hide();
+            $("#movie-card").css('display', 'block')
+
+
+            $("#movie-poster-img").attr('src', '');
+
+            $(".overlay").css('display', 'block');
+
+
+
+
+            $.ajax({
+                type: "post",
+                url: "/getMovieDetails",
+                data: { "movie-name": movie_name },
+                dataType: "json",
+                success: function (data) {
+                    $("#loader").fadeOut();
+                    $("#movie-card").css('display', 'block')
+                    //console.log(data)
+                    if (data['status'] == true) {
+
+                        // Null the variables
+
+                        movieData = {};
+                        castData = {};
+                        reviewData = {};
+                        firedEvents = [];
+                        document.getElementById('cast-modal-popup-container').innerHTML = "";
+                        document.getElementById('recommend-movie-cards-row').innerHTML = "";
+                        document.getElementById('movie-cast-cards-row').innerHTML = "";
+                        document.getElementById('review-tbody').innerHTML = "";
+
+                        document.getElementById('recommend-movie-cards-row').innerHTML = `
+                        <div class="movie-center">
+                            <div class="recommend-movie-card">
+                                <div class="recommend-movie-card-container loader-movie">
+                                    <div class="recommend-movie-card-header">
+                                        <div class="recommend-movie-card-i"><span id="recommend-movie-span-one">
+                                                <p><i class="fa fa-star"></i>0.0/10</p>
+                                            </span>
+                                            <p id="recommend-movie-span-two"></p>
+                                        </div>
+                                    </div>
+                                    <div class="recommend-movie-card-content loader-movie">
+                                        <div class="recommend-movie-card-image"><img class="movie-cast-poster"></div>
+                                        <div class="recommend-movie-card-btn"><button title=""><i class="fa fa-search"></i> Search</button></div>
+                                    </div>
+                                    <div class="recommend-movie-card-footer"><span>0000-00-00</span></div>
+                                </div>
+                            </div>
+                        </div>
+                        `;
+
+                        document.getElementById('review-tbody').innerHTML = `<tr id="col-title">
+                            <th>REVIEWS</th>
+                            <th>SENTIMENT</th>
+                        </tr>
+                        <tr class="loading" id="removeTR">
+                            <td></td>
+                            <td></td>
+                        </tr>`;
+
+                        // Hide top search
+                        $("#top-search").hide();
+
+                        $("#search-movie").val(movie_name);
+                        $("#movie-is-loaded").css('display', 'block');
+                        $("#movie-card").css('display', 'block');
+                        $("#errorTag").css('display', 'none');
+
+                        //* Movie details 
+                        $("#movie-name").text(data['movie-details']['title']);
+                        $("#movie-poster-img").attr('src', data['movie-details']['poster_path'])
+                        $(".overlay").css('display', 'none');
+
+                        //* Movie Details modal popup 
+                        movieData = data['movie-details'];
+                        castData = data['cast-details'];
+
+                        //* show Cast card
+                        showCastCards(castData);
+
+                    }
+                    else {
+                        // show top search
+                        //console.log("Not fond")
+                        $("#top-search").show();
+                        $("#errorTag").css('display', 'block');
+                        $("#errorTag").text("*" + movie_name + " Movie not found in our database..");
+                        movieData = {};
+                        castData = {};
+                        reviewData = {};
+
+                        $("#loader").fadeOut();
+
+
+                        document.getElementById('cast-modal-popup-container').innerHTML = "";
+                        document.getElementById('recommend-movie-cards-row').innerHTML = "";
+                        document.getElementById('movie-cast-cards-row').innerHTML = "";
+                        document.getElementById('review-tbody').innerHTML = "";
+
+                        $(".movie-card").hide();
+                    }
+                }
+            });
+
+        }
+
+
+        function showRecommendMoviesCards(recommend_movies) {
+
+            recommend_movie_cards_row = document.getElementById("recommend-movie-cards-row");
+            recommend_movie_cards_row.innerHTML = "";
+            //$("#recommend-movie-cards-row").remove();
+            $(".recommend-movie-card-container").removeClass('loader-movie');
+            $(".recommend-movie-card-contant").removeClass('loader-movie');
+
+            for (var i = 0; recommend_movies.length > i; i++) {
+
+                /* Create elements*/
+
+                recommend_movie_card = document.createElement('div');
+                recommend_movie_card_container = document.createElement('div');
+
+                /* Header child */
+                recommend_movie_card_header = document.createElement('div');
+                recommend_movie_card_i = document.createElement('div');
+                recommend_movie_span_one = document.createElement('span');
+                recommend_movie_span_one_p = document.createElement('p');
+                recommend_movie_span_two = document.createElement('p');
+                /* Header child */
+
+                recommend_movie_card_content = document.createElement('div');
+                recommend_movie_card_image = document.createElement('div');
+                recommend_movie_card_image_img = document.createElement('img');
+                recommend_movie_card_btn = document.createElement('div');
+                recommend_movie_card_btn_button = document.createElement('button');
+                recommend_movie_card_footer = document.createElement('div');
+                recommend_movie_card_footer_span = document.createElement('span');
+
+
+                /* Add class list */
+                recommend_movie_card.classList.add("recommend-movie-card");
+                recommend_movie_card_container.classList.add("recommend-movie-card-container");
+                recommend_movie_card_header.classList.add("recommend-movie-card-header");
+                recommend_movie_card_i.classList.add("recommend-movie-card-i");
+
+                recommend_movie_card_content.classList.add("recommend-movie-card-content");
+                recommend_movie_card_image.classList.add("recommend-movie-card-image");
+                recommend_movie_card_btn.classList.add("recommend-movie-card-btn");
+
+                recommend_movie_card_footer.classList.add('recommend-movie-card-footer');
+
+                recommend_movie_card_image_img.classList.add('movie-cast-poster');
+
+
+                /* Add id*/
+                recommend_movie_span_one.id = "recommend-movie-span-one";
+                recommend_movie_span_two.id = "recommend-movie-span-two";
+                recommend_movie_card_btn_button.title = recommend_movies[i]['original_title'];
+
+                /* Add TextContent */
+                recommend_movie_span_one_p.innerHTML = '<i class="fa fa-star"></i> ' + recommend_movies[i]['vote_average'] + "/10";
+                recommend_movie_card_btn_button.innerHTML = `<i class="fa fa-search"></i> Search`;
+                recommend_movie_card_image_img.src = recommend_movies[i]['poster_path'];
+                recommend_movie_card_footer_span.textContent = recommend_movies[i]['release_date'];
+
+                /* Button onclick */
+                recommend_movie_card_btn_button.onclick = (event) => {
+                    postMovie(event.target.title);
+                }
+
+                /* Append to parent class */
+                recommend_movie_cards_row.appendChild(recommend_movie_card);
+                recommend_movie_card.appendChild(recommend_movie_card_container);
+                recommend_movie_card_container.appendChild(recommend_movie_card_header);
+
+                /*  Header child  */
+                recommend_movie_card_header.appendChild(recommend_movie_card_i);
+                recommend_movie_card_i.appendChild(recommend_movie_span_one);
+                recommend_movie_span_one.appendChild(recommend_movie_span_one_p);
+                recommend_movie_card_i.appendChild(recommend_movie_span_two);
+                /* end header child */
+
+                recommend_movie_card_container.appendChild(recommend_movie_card_content);
+
+                /* card content child */
+                recommend_movie_card_content.appendChild(recommend_movie_card_image);
+                recommend_movie_card_image.appendChild(recommend_movie_card_image_img);
+                recommend_movie_card_content.appendChild(recommend_movie_card_btn);
+                recommend_movie_card_btn.appendChild(recommend_movie_card_btn_button);
+                /* end card content child */
+
+                recommend_movie_card_container.appendChild(recommend_movie_card_footer);
+                recommend_movie_card_footer.appendChild(recommend_movie_card_footer_span);
+
+
+            }
+        }
+
+        function showReviews(reviews) {
+            ////console.log(reviews);
+            let review_tbody = document.getElementById('review-tbody');
+
+
+
+            for (var key in reviews) {
+                let tr = document.createElement('tr');
+                let td1 = document.createElement('td');
+                let td2 = document.createElement('td');
+
+                td1.textContent = key;
+                td2.textContent = reviews[key];
+
+                tr.appendChild(td1);
+                tr.appendChild(td2);
+                review_tbody.appendChild(tr);
+
+            }
+        }
+
+        function movieModalPopup(movieData) {
+            $("#errorTag").css('display', 'none');
+
+            let modal_popup_container = document.getElementById('modal-popup-container');
+            let modal_popup_content = document.createElement('div');
+
+            $("#modal-movie-name").text(movieData['title']);
+            modal_popup_content.classList.add('modal-popup-content');
+
+            modal_popup_content.id = "modal-popup-content-movie-details";
+
+            modal_popup_container.appendChild(modal_popup_content);
+
+
+            for (var i = 0; movie_modal_popup_keys.length > i; i++) {
+
+                let p = document.createElement('p')
+                let b1 = document.createElement('b');
+                let b2 = document.createElement('b');
+
+
+                b1.classList.add('modal-popup-heading');
+
+                b1.textContent = movie_modal_popup_keys[i] + ": ";
+                b2.textContent = movieData[movie_modal_popup_keys[i]];
+
+                p.appendChild(b1);
+                p.appendChild(b2);
+                modal_popup_content.appendChild(p);
+
+            }
+            $("#loader").fadeOut();
+        }
+
+        function castModalPopup(title, cast_id) {
+
+
+            let modal_popup_container = document.getElementById('cast-modal-popup-container');
+
+            cast_modal_popup_container_title = document.createElement('div');
+
+            modal_popup_header = document.createElement('div');
+            modal_popup_content = document.createElement('div');
+
+            modal_popup_content.classList.add('modal-popup-content');
+            modal_popup_header.classList.add('modal-popup-header');
+
+            modal_popup_header_p = document.createElement('p');
+            modal_popup_header_span = document.createElement('span');
+
+            ////console.log("castData[i]['name']: "+title.replaceAll(/[`~!@#$%^&*()_|+\-=?;:'",. <>\{\}\[\]\\\/]/gi, '-'));
+
+            cast_modal_popup_container_title.classList.add('cast-modal-popup-container-title');
+
+            modal_popup_header_span.textContent = "X";
+
+            modal_popup_header_p.id = "modal-movie-name";
+            modal_popup_header_span.id = "closeCastDetailsModalPopup-" + title.replaceAll(/[`~!@#$%^&*()_|+\-=?;:'",. <>\{\}\[\]\\\/]/gi, '-');
+            cast_modal_popup_container_title.id = "cast-modal-popup-container-" + title.replaceAll(/[`~!@#$%^&*()_|+\-=?;:'",. <>\{\}\[\]\\\/]/gi, '-');
+
+            modal_popup_header_p.textContent = title.replaceAll("-", ' ');
+
+            cast_modal_popup_container_title.style.display = 'none';
+
+
+            modal_popup_container.appendChild(cast_modal_popup_container_title);
+            cast_modal_popup_container_title.appendChild(modal_popup_header);
+            modal_popup_header.appendChild(modal_popup_header_p);
+            modal_popup_header.appendChild(modal_popup_header_span)
+            cast_modal_popup_container_title.appendChild(modal_popup_content);
+            ////console.log("cast_modal_popup_keys: ", cast_modal_popup_keys, title.replaceAll(/[`~!@#$%^&*()_|+\-=?;:'",. <>\{\}\[\]\\\/]/gi, '-'))
+
+            for (var i = 0; cast_modal_popup_keys.length > i; i++) {
+                let p = document.createElement('p')
+                let b1 = document.createElement('b');
+                let b2 = document.createElement('b');
+
+                b1.classList.add('modal-popup-heading');
+
+                b1.textContent = cast_modal_popup_keys[i] + ": ";
+
+                cast_modal_popup_container_title.onclick = closeCastModalPopup(title);
+                if (castData[cast_id][cast_modal_popup_keys[i]] == null) {
+                    b2.textContent = 'None';
+                } else if (castData[i][cast_modal_popup_keys[i]] != null) {
+                    b2.textContent = castData[cast_id][cast_modal_popup_keys[i]];
+                }
+
+                p.appendChild(b1);
+                p.appendChild(b2);
+                modal_popup_content.appendChild(p);
+            }
+
+        }
+
+        function showCastCards(castData) {
+            ////console.log(castData);
+
+            let main_container = document.getElementById("movie-cast-cards-row");
+            for (var i = 0; castData.length > i; i++) {
+
+                ////console.log(castData[i]['character']);
+
+                let movie_cast_card = document.createElement('div');
+
+                // child of movie_cast_card 1
+                let movie_cast_card_container = document.createElement('div');
+                let movie_cast_card_header = document.createElement('div');
+                let movie_cast_card_i = document.createElement('div');
+                let span_one = document.createElement('span');
+                let span_two = document.createElement('span');
+                let span_one_p = document.createElement('p');
+
+                // child of movie_cast_card 2
+                let movie_cast_card_content = document.createElement('div');
+
+                //child of movie_cast_card_content
+                let movie_cast_card_image = document.createElement('div');
+                let movie_cast_poster = document.createElement('img');
+                let movie_cast_card_btn = document.createElement('div');
+                let movie_cast_card_btn_button = document.createElement('button');
+
+                let movie_cast_card_footer = document.createElement('div');
+                let movie_cast_card_footer_span = document.createElement('span');
+
+                movie_cast_card.classList.add('movie-cast-card');
+                movie_cast_card_container.classList.add('movie-cast-card-container');
+                movie_cast_card_header.classList.add('movie-cast-card-header');
+                movie_cast_card_i.classList.add('movie-cast-card-i');
+                movie_cast_card_content.classList.add('movie-cast-card-content');
+                movie_cast_card_image.classList.add('movie-cast-card-image');
+                movie_cast_poster.classList.add('movie-cast-poster');
+                movie_cast_card_btn.classList.add('movie-cast-card-btn');
+                movie_cast_card_footer.classList.add('movie-cast-card-footer')
+
+                movie_cast_card.id = "movie-cast-card-" + i;
+                span_one.id = "span-one";
+                span_two.id = "span-two";
+                movie_cast_card_btn_button.id = "cast-modal-popup-" + castData[i]['character'];
+                movie_cast_card_btn_button.title = castData[i]['name'].replaceAll(/[`~!@#$%^&*()_|+\-=?;:'",. <>\{\}\[\]\\\/]/gi, '-');
+                movie_cast_card_btn_button.addEventListener('click', (event) => {
+                    openCastModal(event)
+                })
+
+                span_one_p.textContent = castData[i]['character'];
+                movie_cast_poster.src = castData[i]['profile_path'];
+                movie_cast_card_btn_button.textContent = "Know more";
+                movie_cast_card_footer_span.textContent = castData[i]['name'];
+
+                main_container.appendChild(movie_cast_card);
+                movie_cast_card.appendChild(movie_cast_card_container);
+                movie_cast_card_container.appendChild(movie_cast_card_header);
+                movie_cast_card_header.appendChild(movie_cast_card_i);
+                movie_cast_card_i.appendChild(span_one);
+                span_one.appendChild(span_one_p);
+                movie_cast_card_i.appendChild(span_two);
+                movie_cast_card_container.appendChild(movie_cast_card_content);
+                movie_cast_card_content.appendChild(movie_cast_card_image);
+                movie_cast_card_image.appendChild(movie_cast_poster);
+                movie_cast_card_container.appendChild(movie_cast_card_btn);
+                movie_cast_card_btn.appendChild(movie_cast_card_btn_button);
+                movie_cast_card_container.appendChild(movie_cast_card_footer);
+                movie_cast_card_footer.appendChild(movie_cast_card_footer_span);
+
+                castModalPopup(castData[i]['name'].replaceAll(/[`~!@#$%^&*()_|+\-=?;:'",. <>\{\}\[\]\\\/]/gi, '-'), i);
+            }
+            $("#loader").fadeOut();
+
+        }
+
+        function openCastModal(event) {
+            let title = event.target.title.replaceAll(/[`~!@#$%^&*()_|+\-=?;:'",. <>\{\}\[\]\\\/]/gi, '-');
+            $("#cast-modal-popup").css('display', 'block');
+            $("#cast-modal-popup-container-" + title).css('display', 'block');
+        }
+
+        function closeModal() {
+            $("#modal-popup").css('display', 'none');
+            $("#cast-modal-popup").css('display', 'none');
+        }
+
+        $("#errorTag").css('display', 'none');
+        $("#modal-popup").css('display', 'none');
+        $("#cast-modal-popup").css('display', 'none');
+        $("#loader").fadeOut();
+
+        $("#searchMovie").click(() => {
+            if ($('#search-movie').val() == "") {
+                $("#errorTag").css('display', 'block');
+                $("#errorTag").text(" *Movie name required..")
+            }
+
+            else {
+                $("#loader").fadeIn()
+                postMovie($("#search-movie").val());
+            }
+        });
+
+        $("#closeMovieDetailsModalPopup").click(() => {
+            $("#modal-popup").css('display', 'none');
+            $("#cast-modal-popup").css('display', 'none');
+        });
+
+        $("#download-modal-popup").click(() => {
+            $("#download-modal-popup").css('display', 'none');
+        });
+
+        $("#download-movie-btn").click(function (e) {
+            $("#download-modal-popup").css('display', 'block');
+
+            $("#download-modal-movie-name").text(movieData['title']);
+            $.ajax({
+                type: "post",
+                url: "getTorrents",
+                data: { "movie-name": movieData['title'] },
+                dataType: "json",
+                success: function (data) {
+                    //console.log(data);
+
+                    let download_modal_popup_links = document.createElement('div');
+                    download_modal_popup_links.id = "download-modal-popup-links";
+                    download_modal_popup_links.classList.add("download-modal-popup-links");
+
+                    if (data['status'] == true) {
+
+                        document.getElementById('download-modal-popup-content').innerHTML = "";
+                        let download_modal_filename = document.createElement('div');
+                        let download_modal_filename_p = document.createElement('p')
+
+                        let download_modal_filesize = document.createElement('div');
+                        let download_modal_filesize_p = document.createElement('p');
+
+                        let download_modal_magnetic_link = document.createElement('div');
+                        let download_modal_magnetic_link_a = document.createElement('a');
+
+                        download_modal_filename.classList.add("download-modal-filename");
+                        //download_modal_filename_p.classList.add("download-modal-filename");
+
+                        download_modal_filesize.classList.add("download-modal-filesize");
+                        //download_modal_filesize_p.classList.add("download-modal-filesize");
+
+                        download_modal_magnetic_link.classList.add("download-modal-magnetic-link");
+                        //download_modal_magnetic_link_a.classList.add("download-torrent-link");
+
+                        download_modal_filename_p.innerHTML = data['torrent-title'];
+                        download_modal_filesize_p.innerHTML = data['torrent-filesize'];
+                        download_modal_magnetic_link_a.href = data['torrent-magnetlink'];
+                        download_modal_magnetic_link_a.textContent = "magnetic link";
+                        download_modal_magnetic_link_a.target = "_blank";
+
+                        download_modal_filename.append(download_modal_filename_p);
+                        download_modal_filesize.append(download_modal_filesize_p);
+                        download_modal_magnetic_link.append(download_modal_magnetic_link_a);
+
+                        download_modal_popup_links.appendChild(download_modal_filename);
+                        download_modal_popup_links.appendChild(download_modal_filesize);
+                        download_modal_popup_links.appendChild(download_modal_magnetic_link);
+
+                        document.getElementById('download-modal-popup-content').appendChild(download_modal_popup_links);
+                    }
+                    else {
+                        // no torrent
+                        //console.log("no torrent")
+                        document.getElementById('download-modal-popup-content').innerHTML = "";
+                        let download_modal_popup_links_p = document.createElement('p');
+
+                        download_modal_popup_links_p.classList.add("download-modal-error-p");
+                        download_modal_popup_links_p.textContent = data['error-msg']
+
+                        download_modal_popup_links.appendChild(download_modal_popup_links_p);
+                        document.getElementById('download-modal-popup-content').appendChild(download_modal_popup_links);
+                    }
+                }
+            });
+        });
+
+
+        $("#openModalPopup").click(() => {
+            $("#modal-popup").css('display', 'block');
+            try {
+                $("#modal-popup-content-movie-details").remove();
+            } catch { }
+            movieModalPopup(movieData);
+        });
+    </script>
+
+    <script src="{{ url_for('static', filename='js/scrollBtn.js') }}"></script>
+
+    <script type="text/javascript">
+        //var films = {{ movieNamesList|tojson }};
+
+        $("#loader").fadeOut()
+    </script>
+
+    <!--  Autocomplete  -->
+    -
+    <script src="https://cdn.jsdelivr.net/npm/@tarekraafat/autocomplete.js@7.2.0/dist/js/autoComplete.min.js"></script>
+
+    <!--<script src="https://cdn.jsdelivr.net/npm/@tarekraafat/autocomplete.js@10.2.7/dist/autoComplete.min.js"></script>-->
+    <!--<script type="text/javascript" src="{{url_for('static', filename='js/autocomplete.js')}}"></script>-->
+
+    <script>
+        function callGetMovieNames() {
+            try {
+                $("#movie_list").remove();
+                $("#movie_list").empty();
+                console.log("removed ul")
+            } catch (e) { console.log(e) }
+            $.ajax({
+                type: "get",
+                url: "/get_movies_name",
+                success: function (data) {
+                    //console.log(data)
+                    let films = data['movieNamesList']
+                    const autoCompleteJS = new autoComplete({
+                        selector: "#search-movie",
+                        data: {
+                            src: films,
+                            cache: true,
+                        },
+                        threshold: 1,
+                        debounce: 100,
+                        searchEngine: "strict",
+                        resultsList: {
+                            render: true,
+                            container: source => {
+                                try {
+                                    $("#movie_list").remove();
+                                    $("#movie_list").empty();
+                                    console.log("removed ul")
+                                } catch (e) { console.log(e) }
+                                source.setAttribute("id", "movie_list");
+                                $("#errorTag").css('display', 'none');
+                            },
+                            destination: document.querySelector("#search-movie"),
+                            position: "afterend",
+                            element: "ul"
+                        },
+                        maxResults: 6,
+                        highlight: true,
+                        resultItem: {
+                            content: (data, source) => {
+                                source.innerHTML = data.match;
+                            },
+                            element: "li"
+                        },
+                        noResults: () => {
+                            try {
+                                $("#movie_list").remove();
+                                $("#movie_list").empty();
+                                console.log("removed ul")
+                            } catch (e) { console.log(e) }
+                            const result = document.createElement("li");
+                            result.setAttribute("class", "no_result");
+                            result.setAttribute("tabindex", "1");
+                            result.innerHTML = "No Suggestion";
+                            $("#errorTag").css('display', 'block');
+                            $("#errorTag").text("*" + result.textContent + ", \movie not found in the database..");
+                        },
+                        onSelection: feedback => {
+                            try {
+                                $("#movie_list").remove();
+                                $("#movie_list").empty();
+                                console.log("removed ul")
+                            } catch (e) { console.log(e) }
+                            document.getElementById('search-movie').value = feedback.selection.value;
+                            postMovie(feedback.selection.value);
+                        },
+                    });
+                }
+            });
+
+        }
+        //callGetMovieNames()
+    </script>
+
+
+
+</body>
+
+</html>
